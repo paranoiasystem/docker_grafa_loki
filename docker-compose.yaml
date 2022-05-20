@@ -1,0 +1,38 @@
+version: "3"
+
+networks:
+  docker_grafana_loki:
+
+services:
+  loki:
+    image: grafana/loki:latest
+    expose:
+      - 3100
+    volumes:
+      - ./loki/config.yaml:/etc/loki/config.yaml
+    command: -config.file=/etc/loki/config.yaml
+    networks:
+      - docker_grafana_loki
+
+  grafana:
+    image: grafana/grafana:latest
+    expose:
+      - 3000
+    environment:
+      GF_SERVER_ROOT_URL: http://localhost/grafana
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - docker_grafana_loki
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    networks:
+      - docker_grafana_loki
+
+volumes:
+  grafana-storage:
